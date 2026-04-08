@@ -8,6 +8,7 @@ const { initMQTT } = require("./services/mqttService");
 const { initMQTTClient } = require("./services/mqtt.service");
 const userRoutes = require("./routes/userRoutes");
 const deviceRoutes = require("./routes/deviceRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 // ================= APP INIT =================
 const app = express();
@@ -21,6 +22,7 @@ connectDB();
 // ================= ROUTES =================
 app.use("/api/users", userRoutes);
 app.use("/api/devices", deviceRoutes); 
+app.use("/api/admin", adminRoutes); 
 
 // Home route
 app.get("/", (req, res) => {

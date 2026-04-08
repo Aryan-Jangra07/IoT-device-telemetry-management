@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import MyDevices from './pages/MyDevices';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import AdminPanel from './pages/AdminPanel';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
         <Route path="/devices" element={<ProtectedRoute><MyDevices /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
         
         {/* Fallback & Home redirection */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

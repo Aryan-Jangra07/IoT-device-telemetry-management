@@ -49,4 +49,8 @@ export const deviceService = {
   sendCommand: (deviceId, command, payload = {}) => api.post(`/devices/${encodeURIComponent(deviceId)}/command`, { command, payload }),
 };
 
+export const adminService = {
+  getAllDevices: () => api.get('/admin/devices'),
+};
+
 export default api;
