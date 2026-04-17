@@ -46,7 +46,7 @@ export const authService = {
 
 export const deviceService = {
   getDevices: () => api.get('/devices'),
-  registerDevice: (name) => api.post('/devices/register', { name }),
+  registerDevice: (name, type, config = {}) => api.post('/devices/register', { name, type, config }),
   deleteDevice: (deviceId) => api.delete(`/devices/${encodeURIComponent(deviceId)}`),
   getTelemetry: (deviceId) => api.get(`/devices/${encodeURIComponent(deviceId)}/telemetry`, {
     headers: {
@@ -61,6 +61,8 @@ export const deviceService = {
 
 export const adminService = {
   getAllDevices: () => api.get('/admin/devices'),
+  deleteUser: (id) => api.delete(`/admin/users/${encodeURIComponent(id)}`),
+  deleteDevice: (id) => api.delete(`/admin/devices/${encodeURIComponent(id)}`),
 };
 
 export default api;

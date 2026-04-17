@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { adminService } from '../services/api';
-import { ShieldCheck, Activity, Users, Server, Search, Filter } from 'lucide-react';
+import { ShieldCheck, Activity, Users, Server, Search, Filter, Trash2 } from 'lucide-react';
 
 const AdminPanel = () => {
   const [data, setData] = useState({ devices: [], stats: {} });
@@ -21,6 +21,26 @@ const AdminPanel = () => {
       console.error('Failed to fetch admin data', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user and all associated devices?")) return;
+    try {
+      await adminService.deleteUser(userId);
+      fetchAdminData();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to delete user');
+    }
+  };
+
+  const handleDeleteDevice = async (deviceId) => {
+    if (!window.confirm("Are you sure you want to delete this device?")) return;
+    try {
+      await adminService.deleteDevice(deviceId);
+      fetchAdminData();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to delete device');
     }
   };
 
@@ -102,6 +122,7 @@ const AdminPanel = () => {
               ) : (
                 Object.entries(groupedDevices).map(([email, clientDevices]) => {
                   const onlineCount = clientDevices.filter(d => d.status === 'online').length;
+                  const ownerId = clientDevices[0]?.owner?._id;
                   
                   return (
                     <div key={email} className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
@@ -118,6 +139,14 @@ const AdminPanel = () => {
                             <p className="text-xs font-semibold text-emerald-500 mt-0.5">{onlineCount} Online</p>
                           </div>
                         </div>
+                        {ownerId && (
+                          <button 
+                            onClick={() => handleDeleteUser(ownerId)}
+                            className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border border-rose-500/20 shadow-sm"
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete User
+                          </button>
+                        )}
                       </div>
 
                       {/* Client Devices Table */}
@@ -129,6 +158,7 @@ const AdminPanel = () => {
                               <th className="py-4 px-6 font-semibold uppercase tracking-widest text-[10px]">Device ID</th>
                               <th className="py-4 px-6 font-semibold uppercase tracking-widest text-[10px]">Status</th>
                               <th className="py-4 px-6 font-semibold uppercase tracking-widest text-[10px]">Registered Date</th>
+                              <th className="py-4 px-6 font-semibold uppercase tracking-widest text-[10px] text-right">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
@@ -156,6 +186,15 @@ const AdminPanel = () => {
                                 </td>
                                 <td className="py-4 px-6 text-slate-500 dark:text-slate-400">
                                   {new Date(device.createdAt).toLocaleDateString()}
+                                </td>
+                                <td className="py-4 px-6 text-right">
+                                  <button 
+                                    onClick={() => handleDeleteDevice(device.deviceId)}
+                                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                                    title="Delete Device"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
                                 </td>
                               </tr>
                             ))}

@@ -75,9 +75,9 @@ const useDeviceStore = create((set, get) => ({
     }
   },
   
-  registerDevice: async (name, config = {}) => {
+  registerDevice: async (name, type, config = {}) => {
     try {
-      const res = await deviceService.registerDevice(name, config);
+      const res = await deviceService.registerDevice(name, type, config);
       // Reload logic slightly to not fake too much data (DB populates defaults)
       await get().fetchDevices(); 
       toast.success('Device registered!');

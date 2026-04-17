@@ -1,21 +1,31 @@
 import React, { useState } from 'react';
-import { Settings, Cpu, ShieldCheck, X, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Settings, Cpu, ShieldCheck, X, ArrowRight, CheckCircle2, Box, Sprout, Home, Snowflake, Zap, Server } from 'lucide-react';
 import useDeviceStore from '../store/deviceStore';
+
+const DEVICE_TYPES = [
+  { id: 'Warehouse Monitoring', icon: Box, telemetry: ['Temperature', 'Humidity'], desc: 'Tracks ambient conditions in storage.' },
+  { id: 'Smart Agriculture', icon: Sprout, telemetry: ['Temperature', 'Humidity'], desc: 'Monitors soil and air environments.' },
+  { id: 'Smart Home', icon: Home, telemetry: ['Temperature', 'Humidity', 'Voltage'], desc: 'Tracks home automation metrics.' },
+  { id: 'Cold Storage', icon: Snowflake, telemetry: ['Temperature'], desc: 'Monitors critical low-temperature parameters.' },
+  { id: 'Power Monitoring', icon: Zap, telemetry: ['Voltage'], desc: 'Tracks electrical grid voltage streams.' },
+  { id: 'Server Room', icon: Server, telemetry: ['Temperature', 'Humidity', 'Voltage'], desc: 'Data center environmental tracking.' },
+];
 
 const OnboardingModal = ({ onClose, onComplete }) => {
   const [step, setStep] = useState(1);
   const [deviceName, setDeviceName] = useState('');
+  const [deviceType, setDeviceType] = useState('');
   const [deviceData, setDeviceData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { registerDevice } = useDeviceStore();
 
   const handleRegister = async () => {
-    if (!deviceName.trim()) return;
+    if (!deviceName.trim() || !deviceType) return;
     setIsSubmitting(true);
     try {
-      const data = await registerDevice(deviceName);
+      const data = await registerDevice(deviceName, deviceType);
       setDeviceData(data.device);
-      setStep(3);
+      setStep(4);
     } catch (error) {
       console.error(error);
     } finally {
@@ -30,7 +40,7 @@ const OnboardingModal = ({ onClose, onComplete }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-800">
           <h2 className="text-xl font-bold dark:text-white">Device Setup Wizard</h2>
-          {step !== 3 && (
+          {step !== 4 && (
             <button onClick={onClose} className="p-2 -mr-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
               <X size={20} />
             </button>
@@ -47,7 +57,7 @@ const OnboardingModal = ({ onClose, onComplete }) => {
               <div>
                 <h3 className="text-lg font-semibold dark:text-zinc-100 mb-2">Welcome to your Dashboard</h3>
                 <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed">
-                  It looks like you don't have any devices connected yet. Let's get your first IoT device registered and transmitting telemetry data securely.
+                  Let's get your IoT device registered and transmitting telemetry data securely.
                 </p>
               </div>
               <button
@@ -60,6 +70,51 @@ const OnboardingModal = ({ onClose, onComplete }) => {
           )}
 
           {step === 2 && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold dark:text-zinc-100 mb-1">Select Device Type</h3>
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+                  What type of device are you using?
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2 pb-2">
+                {DEVICE_TYPES.map((type) => {
+                  const Icon = type.icon;
+                  const isSelected = deviceType === type.id;
+                  return (
+                    <button
+                      key={type.id}
+                      onClick={() => setDeviceType(type.id)}
+                      className={`flex flex-col items-start p-4 rounded-xl border text-left transition-all ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 ring-1 ring-blue-500' : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:border-blue-300 dark:hover:border-zinc-600'}`}
+                    >
+                      <Icon className={`w-6 h-6 mb-3 ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-500 dark:text-zinc-400'}`} />
+                      <div className={`font-semibold text-sm ${isSelected ? 'text-blue-900 dark:text-blue-100' : 'text-zinc-800 dark:text-zinc-200'}`}>
+                        {type.id}
+                      </div>
+                      <div className="text-xs text-zinc-500 mt-1">{type.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800 mt-2">
+                <button
+                  onClick={() => setStep(1)}
+                  className="px-5 py-2.5 text-zinc-600 dark:text-zinc-400 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!deviceType}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg shadow-lg shadow-blue-500/20 transition-all"
+                >
+                  Next <ArrowRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold dark:text-zinc-100 mb-1">Name your device</h3>
@@ -82,14 +137,14 @@ const OnboardingModal = ({ onClose, onComplete }) => {
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(2)}
                   className="px-5 py-2.5 text-zinc-600 dark:text-zinc-400 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleRegister}
-                  disabled={!deviceName.trim() || isSubmitting}
+                  disabled={!deviceName.trim() || !deviceType || isSubmitting}
                   className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg shadow-lg shadow-blue-500/20 transition-all"
                 >
                   {isSubmitting ? 'Registering...' : 'Register Device'}
@@ -98,7 +153,7 @@ const OnboardingModal = ({ onClose, onComplete }) => {
             </div>
           )}
 
-          {step === 3 && deviceData && (
+          {step === 4 && deviceData && (
             <div className="space-y-6">
               <div className="flex items-center justify-center w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl mb-6">
                 <CheckCircle2 size={32} />
@@ -106,7 +161,7 @@ const OnboardingModal = ({ onClose, onComplete }) => {
               <div>
                 <h3 className="text-lg font-semibold text-emerald-600 dark:text-emerald-400 mb-2">Registration Successful!</h3>
                 <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
-                  Your device is successfully tracked. Configure your physical device with the credentials below to start sending telemetry over MQTT.
+                  Configure your physical device with the credentials below to start sending telemetry over MQTT.
                 </p>
               </div>
               
@@ -123,6 +178,16 @@ const OnboardingModal = ({ onClose, onComplete }) => {
                 <div>
                   <div className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-1">MQTT Telemetry Topic</div>
                   <div className="font-mono text-sm dark:text-zinc-200">device/{deviceData.deviceId}/telemetry</div>
+                </div>
+                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 mt-2">
+                  <div className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-2">Supported Telemetry</div>
+                  <div className="flex flex-wrap gap-2">
+                    {DEVICE_TYPES.find(t => t.id === deviceType)?.telemetry.map(metric => (
+                      <span key={metric} className="px-2 py-1 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs rounded-md font-medium">
+                        {metric}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
