@@ -42,6 +42,7 @@ export const authService = {
     console.log('[DEBUG] Registration Payload:', payload);
     return api.post('/users/register', payload);
   },
+  changePassword: (oldPassword, newPassword) => api.put('/users/change-password', { oldPassword, newPassword }),
 };
 
 export const deviceService = {

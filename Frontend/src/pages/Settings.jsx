@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import { getUser } from '../utils/auth';
+import { authService } from '../services/api';
 import { 
   User, 
   Shield, 
@@ -9,11 +10,43 @@ import {
   Bell, 
   Moon,
   Lock,
-  Smartphone
+  Smartphone,
+  X
 } from 'lucide-react';
 
 const Settings = () => {
   const user = getUser();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      return setError('New passwords do not match');
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      return setError('Password must be at least 6 characters');
+    }
+
+    try {
+      setLoading(true);
+      await authService.changePassword(passwordForm.oldPassword, passwordForm.newPassword);
+      setSuccess('Password updated successfully');
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => setShowPasswordModal(false), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sections = [
     {
@@ -36,7 +69,7 @@ const Settings = () => {
       title: 'Security',
       icon: Lock,
       items: [
-        { label: 'Password', value: '••••••••••••', type: 'button', btnLabel: 'Change' },
+        { label: 'Password', value: '••••••••••••', type: 'button', btnLabel: 'Change', action: () => { setSuccess(''); setError(''); setPasswordForm({oldPassword:'', newPassword:'', confirmPassword:''}); setShowPasswordModal(true); } },
         { label: 'Two-Factor Auth', value: 'Disabled', type: 'button', btnLabel: 'Enable' },
       ]
     }
@@ -82,7 +115,9 @@ const Settings = () => {
                       )}
                     </div>
                     {item.type === 'button' && (
-                      <button className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700">
+                      <button 
+                        onClick={item.action}
+                        className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700">
                         {item.btnLabel}
                       </button>
                     )}
@@ -92,6 +127,64 @@ const Settings = () => {
             </div>
           ))}
         </div>
+
+        {/* Change Password Modal */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl w-full max-w-md border border-slate-200 dark:border-slate-800 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Change Password</h3>
+                <button onClick={() => setShowPasswordModal(false)} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {error && <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 text-red-500 rounded-xl text-sm font-semibold">{error}</div>}
+              {success && <div className="mb-4 p-3 bg-emerald-500/20 border border-emerald-500/50 text-emerald-500 rounded-xl text-sm font-semibold">{success}</div>}
+
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Current Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.oldPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">New Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Confirm New Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    required
+                  />
+                </div>
+                
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Updating...' : 'Update Password'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
