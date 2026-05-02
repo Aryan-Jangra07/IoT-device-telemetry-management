@@ -1,0 +1,8 @@
+{
+  "name": "iot-telemetry-root",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd Backend && npm install",
+    "start": "cd Backend && npm start"
+  }
+}
