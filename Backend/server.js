@@ -23,7 +23,9 @@ const app = express();
 const server = http.createServer(app);
 
 // Production-ready CORS
-const allowedOrigin = process.env.FRONTEND_URL || "*";
+// If FRONTEND_URL is not set, use 'true' to dynamically reflect the requested origin.
+// Using '*' with credentials=true causes browsers to block the request.
+const allowedOrigin = process.env.FRONTEND_URL || true; 
 const io = new Server(server, {
   cors: {
     origin: allowedOrigin,
