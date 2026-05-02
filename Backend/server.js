@@ -21,34 +21,18 @@ const errorHandler = require("./middleware/errorMiddleware");
 // ================= APP INIT =================
 const app = express();
 const server = http.createServer(app);
-
-// Production-ready CORS
-// If FRONTEND_URL is not set, use 'true' to dynamically reflect the requested origin.
-// Using '*' with credentials=true causes browsers to block the request.
-const allowedOrigin = process.env.FRONTEND_URL || true; 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigin,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin: "*", // Adjust for production
+    methods: ["GET", "POST"]
   }
 });
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: allowedOrigin,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-
-// Explicit Request Tracing for Production Debugging
-app.use((req, res, next) => {
-  console.log(`[API TRACE] ${req.method} ${req.url} - IP: ${req.ip}`);
-  next();
-});
 
 // Rate Limiting
 const limiter = rateLimit({
