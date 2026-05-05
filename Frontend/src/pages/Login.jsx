@@ -28,7 +28,11 @@ const Login = () => {
       saveUser({ ...user, token }); 
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Invalid email or password');
+      if (err.response?.data?.errors?.length > 0) {
+        setError(err.response.data.errors.map(e => e.message).join(' | '));
+      } else {
+        setError(err.response?.data?.message || err.message || 'Invalid email or password');
+      }
     } finally {
       setLoading(false);
     }

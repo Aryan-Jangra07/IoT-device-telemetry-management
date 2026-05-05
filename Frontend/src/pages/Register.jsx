@@ -22,7 +22,11 @@ const Register = () => {
       await authService.register(email, password, role, name);
       navigate('/login');
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      if (err.response?.data?.errors?.length > 0) {
+        setError(err.response.data.errors.map(e => e.message).join(' | '));
+      } else {
+        setError(err.response?.data?.message || err.message || 'Registration failed');
+      }
     } finally {
       setLoading(false);
     }
